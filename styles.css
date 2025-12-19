@@ -134,6 +134,7 @@ body {
   overflow: hidden;
   isolation: isolate;
   z-index: 1;
+  will-change: transform;
 }
 
 .pill-button::after {

@@ -6,6 +6,7 @@ const layers = heroVisual ? heroVisual.querySelectorAll("[data-depth]") : [];
 let heroBounds = heroVisual ? heroVisual.getBoundingClientRect() : null;
 let heroFrame = null;
 let heroPointer = { x: 0, y: 0 };
+let heroCurrent = { x: 0, y: 0 };
 
 const updateHeroBounds = () => {
   if (!heroVisual) return;
@@ -14,12 +15,17 @@ const updateHeroBounds = () => {
 
 const renderParallax = () => {
   if (!heroBounds) return;
+  heroCurrent.x += (heroPointer.x - heroCurrent.x) * 0.12;
+  heroCurrent.y += (heroPointer.y - heroCurrent.y) * 0.12;
+  const x = heroCurrent.x / heroBounds.width - 0.5;
+  const y = heroCurrent.y / heroBounds.height - 0.5;
   const x = heroPointer.x / heroBounds.width - 0.5;
   const y = heroPointer.y / heroBounds.height - 0.5;
   layers.forEach((layer) => {
     const depth = Number(layer.dataset.depth);
     layer.style.transform = `translate3d(${x * depth}px, ${y * depth}px, 0)`;
   });
+  heroFrame = requestAnimationFrame(renderParallax);
   heroFrame = null;
 };
 
@@ -39,6 +45,19 @@ if (heroVisual) {
   window.addEventListener("resize", updateHeroBounds, { passive: true });
   heroVisual.addEventListener("pointermove", handleParallax, { passive: true });
   heroVisual.addEventListener("mouseleave", () => {
+    heroPointer = { x: heroBounds.width / 2, y: heroBounds.height / 2 };
+    heroCurrent = { ...heroPointer };
+    layers.forEach((layer) => {
+      layer.style.transform = "translate3d(0, 0, 0)";
+    });
+    if (heroFrame) {
+      cancelAnimationFrame(heroFrame);
+      heroFrame = null;
+    }
+  });
+  heroPointer = { x: heroBounds.width / 2, y: heroBounds.height / 2 };
+  heroCurrent = { ...heroPointer };
+  heroFrame = requestAnimationFrame(renderParallax);
     layers.forEach((layer) => {
 const handleParallax = (event) => {
   const { clientX, clientY } = event;
@@ -87,12 +106,18 @@ buttons.forEach((button) => {
   let frame = null;
   let rect = button.getBoundingClientRect();
   let pointer = { x: rect.width / 2, y: rect.height / 2 };
+  let current = { ...pointer };
 
   const updateRect = () => {
     rect = button.getBoundingClientRect();
   };
 
   const renderGlow = () => {
+    current.x += (pointer.x - current.x) * 0.2;
+    current.y += (pointer.y - current.y) * 0.2;
+    button.style.setProperty("--x", `${current.x}px`);
+    button.style.setProperty("--y", `${current.y}px`);
+    frame = requestAnimationFrame(renderGlow);
     button.style.setProperty("--x", `${pointer.x}px`);
     button.style.setProperty("--y", `${pointer.y}px`);
     frame = null;
@@ -109,6 +134,13 @@ buttons.forEach((button) => {
     },
     { passive: true }
   );
+  button.addEventListener("pointerleave", () => {
+    pointer = { x: rect.width / 2, y: rect.height / 2 };
+    current = { ...pointer };
+    if (frame) {
+      cancelAnimationFrame(frame);
+      frame = null;
+    }
   button.addEventListener("mousemove", (event) => {
     const rect = button.getBoundingClientRect();
     const x = event.clientX - rect.left;
