@@ -229,6 +229,10 @@ body {
   height: 480px;
 }
 
+.hero__visual [data-depth] {
+  will-change: transform;
+}
+
 .orbital {
   position: absolute;
   width: 320px;
