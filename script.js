@@ -40,6 +40,24 @@ if (heroVisual) {
   heroVisual.addEventListener("pointermove", handleParallax, { passive: true });
   heroVisual.addEventListener("mouseleave", () => {
     layers.forEach((layer) => {
+const handleParallax = (event) => {
+  const { clientX, clientY } = event;
+  const bounds = heroVisual.getBoundingClientRect();
+  const x = (clientX - bounds.left) / bounds.width - 0.5;
+  const y = (clientY - bounds.top) / bounds.height - 0.5;
+
+  heroVisual.querySelectorAll("[data-depth]").forEach((layer) => {
+    const depth = Number(layer.dataset.depth);
+    const moveX = x * depth;
+    const moveY = y * depth;
+    layer.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+  });
+};
+
+if (heroVisual) {
+  heroVisual.addEventListener("mousemove", handleParallax);
+  heroVisual.addEventListener("mouseleave", () => {
+    heroVisual.querySelectorAll("[data-depth]").forEach((layer) => {
       layer.style.transform = "translate3d(0, 0, 0)";
     });
   });
@@ -91,4 +109,11 @@ buttons.forEach((button) => {
     },
     { passive: true }
   );
+  button.addEventListener("mousemove", (event) => {
+    const rect = button.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    button.style.setProperty("--x", `${x}px`);
+    button.style.setProperty("--y", `${y}px`);
+  });
 });
