@@ -19,11 +19,14 @@ const renderParallax = () => {
   heroCurrent.y += (heroPointer.y - heroCurrent.y) * 0.12;
   const x = heroCurrent.x / heroBounds.width - 0.5;
   const y = heroCurrent.y / heroBounds.height - 0.5;
+  const x = heroPointer.x / heroBounds.width - 0.5;
+  const y = heroPointer.y / heroBounds.height - 0.5;
   layers.forEach((layer) => {
     const depth = Number(layer.dataset.depth);
     layer.style.transform = `translate3d(${x * depth}px, ${y * depth}px, 0)`;
   });
   heroFrame = requestAnimationFrame(renderParallax);
+  heroFrame = null;
 };
 
 const handleParallax = (event) => {
@@ -55,6 +58,28 @@ if (heroVisual) {
   heroPointer = { x: heroBounds.width / 2, y: heroBounds.height / 2 };
   heroCurrent = { ...heroPointer };
   heroFrame = requestAnimationFrame(renderParallax);
+    layers.forEach((layer) => {
+const handleParallax = (event) => {
+  const { clientX, clientY } = event;
+  const bounds = heroVisual.getBoundingClientRect();
+  const x = (clientX - bounds.left) / bounds.width - 0.5;
+  const y = (clientY - bounds.top) / bounds.height - 0.5;
+
+  heroVisual.querySelectorAll("[data-depth]").forEach((layer) => {
+    const depth = Number(layer.dataset.depth);
+    const moveX = x * depth;
+    const moveY = y * depth;
+    layer.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
+  });
+};
+
+if (heroVisual) {
+  heroVisual.addEventListener("mousemove", handleParallax);
+  heroVisual.addEventListener("mouseleave", () => {
+    heroVisual.querySelectorAll("[data-depth]").forEach((layer) => {
+      layer.style.transform = "translate3d(0, 0, 0)";
+    });
+  });
 }
 
 const observer = new IntersectionObserver(
@@ -93,6 +118,9 @@ buttons.forEach((button) => {
     button.style.setProperty("--x", `${current.x}px`);
     button.style.setProperty("--y", `${current.y}px`);
     frame = requestAnimationFrame(renderGlow);
+    button.style.setProperty("--x", `${pointer.x}px`);
+    button.style.setProperty("--y", `${pointer.y}px`);
+    frame = null;
   };
 
   button.addEventListener("pointerenter", updateRect, { passive: true });
@@ -113,5 +141,11 @@ buttons.forEach((button) => {
       cancelAnimationFrame(frame);
       frame = null;
     }
+  button.addEventListener("mousemove", (event) => {
+    const rect = button.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+    button.style.setProperty("--x", `${x}px`);
+    button.style.setProperty("--y", `${y}px`);
   });
 });
